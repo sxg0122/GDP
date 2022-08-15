@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            overflow: hidden;
+            background: url(./bg/bg4.jpg);
+        }
+
+        div {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main"></div>
+    <script src="./lib/echarts.5.3.2.min.js"></script>
+    <script src="js/colors.js"></script>
+    <script src="js/rich.js"></script>
+    <script src="./lib/axios.js"></script>
+    <script type="text/javascript">
+        const defaultData = [
+            // 国家明、英文名、年、gdp美元、人口、人均gdp
+            /* ['美国', 'America', 1960, 54329999360, 5400, 18067100, 300],
+            ['英国', 'Britain', 1960, 7323396505, 700.34, 5240000, 139],
+            ['法国', 'French', 1960, 6222547763, 600.25, 4662170, 133],
+            ['中国', 'China', 1960, 5971646873, 500.16, 66707000, 8],
+            ['日本', 'Japan', 1960, 4430734131, 400.07, 9321600, 47],
+            ['加拿大', 'Canada', 1960, 4046172160, 400.62, 1790900, 225],
+            ['意大利', 'Italy', 1960, 4038529024, 400.85, 5019970, 80],
+            ['印度', 'India', 1960, 3702988390, 300.3, 45054800, 8],
+            ['澳大利亚', 'Australia', 1960, 1857766809, 100.78, 1027650, 181],
+            ['瑞典', 'Sweden', 1960, 1582258483, 100.23, 748466, 211],
+            ['巴西', 'Brazil', 1960, 1516557004, 100.66, 7217920, 21],
+            ['土耳其', 'Turkey', 1960, 1399506739, 100.95, 2747230, 50],
+            ['墨西哥', 'Mexico', 1960, 1304000000, 100.4, 3777190, 34],
+            ['荷兰', 'Netherlands', 1960, 1227673395, 100.77, 1148660, 106],
+            ['西班牙', 'Spain', 1960, 1207212646, 100.72, 3045500, 39] */
+        ]
+        // 基于准备好的dom，初始化echarts实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据   决定图标样式
+        var option = {
+            // 图表标题
+            title: {
+                text: '世界强国GDP',
+                textStyle: {
+                    color: 'orange',
+                    fontFamily: '微软雅黑',
+                    fontSize: 40,
+                },
+                left: 'center',
+                top: 30
+            },
+            grid: {
+                top: 80,
+                right: 180,
+            },
+            //   tooltip: {},  鼠标经过提示
+            //   legend: {
+            //     data: ['销量']
+            //   },
+            // xAxis  x轴
+            xAxis: {
+                max: 'dataMax',  // x轴坐标最大值，使用数据中最大值
+                show: false,
+            },
+            //    yAxis  y轴
+            yAxis: {
+                type: 'category',  //y轴表示类别，放哥哥国家的名字
+                inverse: true,  // 反向坐标轴
+                animationDuration: 300,
+                animationDurationUpdate: 300,
+                max: 9,  // 表示只显示数据最大的柱子
+                axisLine: {
+                    show: false,
+                    lineStyle: {
+                    color: "#fff",
+                }
+
+                },
+                axisTick: {
+                    show: false
+                }
+            },
+            //   图表数据
+            series: [
+                {
+                    realtimeSort: true,  //  柱子排序
+                    name: 'GDP',
+                    type: 'bar',
+                    barWidth: 35,
+                    data: defaultData,
+                    encode: {  // 表示x轴用什么数据 y轴有什么数据
+                        x: 4,
+                        y: 0,
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        valueAnimation: true,
+                        formatter: function (param) {
+                            // console.log(param);
+                            // param.value[4]  gdp数据
+                            return `{${param.value[1]}|}` + param.value[4]
+                        },
+                        rich: rich,
+                        /* rich: {
+                            img: {
+                                backgroundColor: {
+                                    image: './images/China.svg'
+                                },
+                                width:53,
+                                height:35
+                            }
+                        } */
+                    },
+                    itemStyle: {  // 每一项的样式  颜色
+                        // color:'red',
+                        color: function (param) {
+                            // console.log(param);
+                            // return 'blue'
+                            return colors[param.value[0]]
+
+                        },
+                    }
+                }
+            ],
+            animationDuration: 1000,
+            animationDurationUpdate: 1000,//  间隔多长时间变化一次
+            animationEasing: 'linear',
+            animationEasingUpdate: 'linear',
+            graphic: {
+                elements: [
+                    {
+                        type: 'text',
+                        right: 160,
+                        bottom: 60,
+                        style: {
+                            text: 1960,
+                            font: 'bolder 80px monospace',
+                            fill: 'rgba(100, 100, 100, 0.25)'
+                        },
+                        z: 100
+                    }
+                ]
+            }
+        };
+        // 使用刚指定的配置项和数据显示图表。  创建图表
+        myChart.setOption(option);
+
+        // 获取真实数据
+        axios.get('./lib/data.json').then(({ data }) => {
+            // 定时器 间隔1s 随机修改数据
+            for (let i = 1960; i <= 2020; i++) {
+                setTimeout(function () {
+                    /* option.series[0].data.forEach(item => {
+                        item[4] = Math.round(item[4] + Math.random() * 20000)
+                    }) */
+                    option.series[0].data = data.filter(item => item[2] == i)
+                    option.graphic.elements[0].style.text = i
+                    // 重新创建图表
+                    myChart.setOption(option);
+
+                }, (i - 1959) * 200)
+            }
+        })
+
+    </script>
+</body>
+
+</html>
